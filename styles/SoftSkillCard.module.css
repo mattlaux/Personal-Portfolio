@@ -1,0 +1,15 @@
+.softSkillCard {
+  background-color: white;
+  margin: 0 30%;
+  border-radius: 10px;
+}
+
+.softSkillTitle {
+  background-color: #caebf2;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+.softSkillCard p {
+  padding-bottom: 1rem;
+}
