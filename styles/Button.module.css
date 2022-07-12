@@ -1,6 +1,21 @@
 .redButton {
-  background-color: red;
+  background-color: #ff3b3f;
   border-radius: 5px;
-  padding-left: 5px;
-  padding-right: 5px;
+  padding: 10px;
+  border: 1px solid black;
+}
+
+.redButton:hover {
+  background-color: #ff3b3eb3;
+}
+
+.lightBlueButton {
+  background-color: #caebf2;
+  border-radius: 5px;
+  padding: 10px;
+  border: 1px solid black;
+}
+
+.lightBlueButton:hover {
+  background-color: #a4cfda;
 }
