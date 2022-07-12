@@ -1,0 +1,28 @@
+.projectContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  justify-items: center;
+  margin-left: 15%;
+  margin-right: 15%;
+}
+
+.projectContainer h2 {
+  grid-column: 1 / span 2;
+  padding-top: 1rem;
+}
+
+.leftSide {
+  grid-column: 1 / span 1;
+}
+
+.rightSide {
+  grid-column: 2 / span 1;
+  padding: 2rem;
+}
+
+.projectContainer h3,
+.projectContainer p,
+.projectContainer button {
+  margin: 1rem;
+}
