@@ -9,7 +9,7 @@ const Button = (props: Props) => {
   return props.buttonColor === 'red' ? (
     <button className={styles.redButton}>{props.buttonText}</button>
   ) : (
-    <button className={styles.lightBlueButton}>{props.buttonText}</button>
+    <button className={styles.blueButton}>{props.buttonText}</button>
   );
 };
 

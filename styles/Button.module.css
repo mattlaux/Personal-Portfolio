@@ -1,21 +1,24 @@
 .redButton {
-  background-color: #ff3b3f;
   border-radius: 5px;
   padding: 10px;
-  border: 1px solid black;
+  border: 1px solid #ff3b3f;
+  color: #ff3b3f;
 }
 
 .redButton:hover {
-  background-color: #ff3b3eb3;
+  background-color: #ff3b3f;
+  color: black;
 }
 
-.lightBlueButton {
-  background-color: #caebf2;
+.blueButton {
   border-radius: 5px;
   padding: 10px;
-  border: 1px solid black;
+  border: 1px solid rgb(66, 64, 64);
+  color: rgb(66, 64, 64);
+  background-color: #caebf2;
 }
 
-.lightBlueButton:hover {
-  background-color: #a4cfda;
+.blueButton:hover {
+  background-color: black;
+  color: white;
 }
