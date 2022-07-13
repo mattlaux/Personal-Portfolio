@@ -3,8 +3,7 @@
   grid-template-columns: 1fr 1fr;
   align-items: center;
   justify-items: center;
-  margin-left: 15%;
-  margin-right: 15%;
+  margin: 1rem 15%;
 }
 
 .projectContainer h2 {
@@ -25,4 +24,20 @@
 .projectContainer p,
 .projectContainer button {
   margin: 1rem;
+}
+
+.projectContainer img {
+  border-radius: 0.5rem;
+  margin: 0 1rem;
+}
+
+@media (max-width: 600px) {
+  .projectContainer {
+    display: block;
+    margin: 0 0;
+  }
+
+  .projectContainer figure {
+    margin: 0 1rem;
+  }
 }
