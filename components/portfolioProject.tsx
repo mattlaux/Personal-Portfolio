@@ -7,6 +7,8 @@ interface Props {
   text: string;
   imagePath: string;
   imageAlt: string;
+  imageWidth: number;
+  imageHeight: number;
   textRight: boolean;
 }
 
@@ -17,8 +19,8 @@ const PortfolioProject = (props: Props) => {
         <Image
           src={props.imagePath}
           alt={props.imageAlt}
-          width={100}
-          height={100}
+          width={props.imageWidth}
+          height={props.imageHeight}
         />
       </figure>
       <div className={props.textRight ? styles.rightSide : styles.leftSide}>
