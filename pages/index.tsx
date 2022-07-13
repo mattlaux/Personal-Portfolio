@@ -7,6 +7,7 @@ import CTA from '../components/cta';
 import Link from 'next/link';
 import SoftSkillCard from '../components/softSkillCard';
 import PortfolioProject from '../components/portfolioProject';
+import NavBar from '../components/navBar';
 
 const Home: NextPage = () => {
   return (
@@ -19,19 +20,7 @@ const Home: NextPage = () => {
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div className={styles.headerContainer}>
-        <header className={styles.header}>
-          <p>Matt Laux</p>
-          <nav className={styles.navBar}>
-            <a href="#about">About</a>
-            <a href="#portfolio">Portfolio</a>
-            <a href="#skills">Skills</a>
-            <a href="#spmp">SPMP</a>
-            <a href="#blog">Blog</a>
-            <Button buttonText="Contact Me" buttonColor="red"></Button>
-          </nav>
-        </header>
-      </div>
+      <NavBar />
       <main className={styles.main}>
         <section className={styles.about} id="about">
           <div className={styles.text}>
@@ -47,9 +36,10 @@ const Home: NextPage = () => {
               I have experience with React and NextJS on the frontend. On the
               backend I have experience with Express and PostgreSQL.
             </p>
+            <div id="portfolio"></div>
             <Button buttonText="Contact Me" buttonColor="red"></Button>
           </div>
-          <figure className={styles.image}>
+          <figure className={styles.aboutImage}>
             <Image
               src="/images/profilePic.webp"
               alt="Profile headshot"
@@ -59,7 +49,7 @@ const Home: NextPage = () => {
           </figure>
         </section>
         <hr />
-        <section className={styles.grayBackground} id="portfolio">
+        <section className={styles.grayBackground}>
           <h2 className={styles.portfolioTitle}>Portfolio</h2>
           <PortfolioProject
             title="RetailAlgoTrader"
@@ -67,8 +57,10 @@ const Home: NextPage = () => {
                 traders. Notable features include educational courses and a
                 template generator. This site was created with NextJS for the
                 frontend and backend."
-            imagePath="/images/retailAlgoTrader.webp"
+            imagePath="/images/ratDashboard.webp"
             imageAlt="RetailAlgoTrader homepage"
+            imageWidth={1253}
+            imageHeight={910}
             textRight={true}
           ></PortfolioProject>
           <PortfolioProject
@@ -79,6 +71,8 @@ const Home: NextPage = () => {
             frontend and Express on the backend."
             imagePath="/images/ezmto.webp"
             imageAlt="ezMTO homepage"
+            imageWidth={1253}
+            imageHeight={2272}
             textRight={false}
           ></PortfolioProject>
           <PortfolioProject
@@ -87,11 +81,14 @@ const Home: NextPage = () => {
             Reddit API."
             imagePath="/images/mockReddit.webp"
             imageAlt="Mock reddit homepage"
+            imageWidth={1253}
+            imageHeight={2272}
             textRight={true}
           ></PortfolioProject>
+          <div className={styles.skillsAnchor} id="skills"></div>
         </section>
         <hr />
-        <section id="skills">
+        <section>
           <div className={styles.skillsContainer}>
             <h2>Technical Skills</h2>
             <h3>Tier I (Confident)</h3>
@@ -339,29 +336,30 @@ const Home: NextPage = () => {
               ></SoftSkillCard>
               <SoftSkillCard
                 skillTitle="Customer Relations"
-                skillText="fdaklfjlda;"
+                skillText="Worked with Client representatives to coordinate construction projects and scope creep."
               ></SoftSkillCard>
               <SoftSkillCard
                 skillTitle="Project Management"
-                skillText="fdaklfjlda;"
+                skillText="Tracked financial and manhour budgets for a wide range of construction projects. Coordinated efforst between engineering team, construction team, and supply chain team."
               ></SoftSkillCard>
               <SoftSkillCard
                 skillTitle="Project Estimating"
-                skillText="fdaklfjlda;"
+                skillText="Worked with engineering team and construction team to create bids for potential engineering and construction projects."
               ></SoftSkillCard>
               <SoftSkillCard
-                skillTitle="International Remote Work"
-                skillText="fdaklfjlda;"
+                skillTitle="International Experience"
+                skillText="Worked remotely with students from Universidade Federal do Rio de Janeiro to develop pallet systems for Tenaris. Spent a semester at the National University of Singapore's honor college living and working with students from Southeast Asia."
               ></SoftSkillCard>
               <SoftSkillCard
                 skillTitle="Contractor Management"
-                skillText="fdaklfjlda;"
+                skillText="Tracked man-hours and financials for a wide variety of contractors on active construction projects. Issued disciplinary action when necessary and enforced agreed upon scope of work."
               ></SoftSkillCard>
             </div>
+            <div id="spmp"></div>
           </div>
         </section>
         <hr />
-        <section className={styles.spmpContainer} id="spmp">
+        <section className={styles.spmpContainer}>
           <h2>Software Project Management Plan</h2>
           <p>
             A software project management plan was created for this site in
@@ -376,8 +374,9 @@ const Home: NextPage = () => {
             </a>
           </Link>
         </section>
+        <div className={styles.blogAnchor} id="blog"></div>
         <hr />
-        <section className={styles.blog} id="blog">
+        <section className={styles.blog}>
           <h2>Blog</h2>
           <p>
             Various articles and guides for different issues and technologies I
@@ -422,7 +421,7 @@ const Home: NextPage = () => {
         <p>
           Interested in creating innovative products and continuing to learn.
         </p>
-        <p>Created by Me with NextJS and hosted on Vercel</p>
+        <p>Created with NextJS and hosted on Vercel</p>
         <p>Made with vanilla CSS</p>
       </footer>
     </div>
