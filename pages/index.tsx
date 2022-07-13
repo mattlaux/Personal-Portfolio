@@ -72,7 +72,7 @@ const Home: NextPage = () => {
             imagePath="/images/ezmto.webp"
             imageAlt="ezMTO homepage"
             imageWidth={1253}
-            imageHeight={2272}
+            imageHeight={910}
             textRight={false}
           ></PortfolioProject>
           <PortfolioProject
@@ -82,7 +82,7 @@ const Home: NextPage = () => {
             imagePath="/images/mockReddit.webp"
             imageAlt="Mock reddit homepage"
             imageWidth={1253}
-            imageHeight={2272}
+            imageHeight={910}
             textRight={true}
           ></PortfolioProject>
           <div className={styles.skillsAnchor} id="skills"></div>
