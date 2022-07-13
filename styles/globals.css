@@ -6,11 +6,63 @@ body {
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
 }
 
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: inherit;
+}
+
 a {
   color: inherit;
   text-decoration: none;
+  cursor: pointer;
 }
 
 * {
   box-sizing: border-box;
+  scroll-behavior: smooth;
+}
+
+button {
+  background-color: transparent;
+  color: inherit;
+  border-width: 0;
+  cursor: pointer;
+}
+
+ul,
+ol,
+dd {
+  list-style: none;
+}
+
+cite {
+  font-style: normal;
+}
+
+fieldset {
+  border-width: 0;
+}
+
+[href] {
+  text-decoration: none;
+  color: black;
+}
+
+[href]:hover,
+[href]:focus,
+[href]:active {
+  cursor: pointer;
+}
+
+.img-container {
+  overflow: hidden;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
 }
