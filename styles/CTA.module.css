@@ -11,5 +11,11 @@
 @media (max-width: 600px) {
   .cta {
     display: block;
+    margin: 0 10%;
+  }
+
+  .cta p,
+  .cta button {
+    margin: 0.5rem;
   }
 }
