@@ -1,9 +1,9 @@
-import Button from './button';
-import styles from '../styles/NavBar.module.css';
+import Button from '../button';
+import styles from '../../styles/components/headers/Header.module.css';
 import Image from 'next/image';
 import { useState } from 'react';
 
-const NavBar = () => {
+const Header = () => {
   const [navBarOpen, setNavBarOpen] = useState(false);
 
   return (
@@ -47,4 +47,4 @@ const NavBar = () => {
   );
 };
 
-export default NavBar;
+export default Header;
