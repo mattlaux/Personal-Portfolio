@@ -3,11 +3,11 @@ import Head from 'next/head';
 import Image from 'next/image';
 import styles from '../styles/Home.module.css';
 import Button from '../components/button';
-import CTA from '../components/cta';
 import Link from 'next/link';
 import SoftSkillCard from '../components/softSkillCard';
 import PortfolioProject from '../components/portfolioProject';
-import NavBar from '../components/navBar';
+import Header from '../components/headers/header';
+import Footer from '../components/footer';
 
 const Home: NextPage = () => {
   return (
@@ -20,7 +20,7 @@ const Home: NextPage = () => {
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <NavBar />
+      <Header />
       <main className={styles.main}>
         <section className={styles.about} id="about">
           <div className={styles.text}>
@@ -413,17 +413,7 @@ const Home: NextPage = () => {
           </div>
         </section>
       </main>
-      <footer className={styles.footer}>
-        <div className={styles.cta}>
-          <CTA />
-        </div>
-        <h2 className={styles.footerName}>Matt Laux</h2>
-        <p>
-          Interested in creating innovative products and continuing to learn.
-        </p>
-        <p>Created with NextJS and hosted on Vercel</p>
-        <p>Made with vanilla CSS</p>
-      </footer>
+      <Footer />
     </div>
   );
 };

@@ -197,23 +197,3 @@
     flex-direction: column;
   }
 }
-
-.footer {
-  text-align: center;
-  background-color: lightgray;
-}
-
-.footer h2,
-.footer p {
-  padding: 1rem;
-}
-
-.footer p {
-  font-size: 0.8rem;
-  padding: 0.25rem 0.25rem;
-}
-
-.cta {
-  position: relative;
-  top: -25px;
-}
