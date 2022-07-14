@@ -58,6 +58,7 @@ import LayoutPost from '../components/layoutPost';
   <h3>Wireframe</h3>
   <p>Use Figma</p>
   <h3>Project Plan</h3>
+  <p>High-level plan for this portfolio site.</p>
   <h4>Stakeholders</h4>
   <ul>
     <li>Myself</li>
@@ -127,24 +128,21 @@ import LayoutPost from '../components/layoutPost';
     />
   </figure>
   <h2>Performance Budget</h2>
-  <ul>
-    <li>Time to First Byte (TTFB)</li>
-    <p>Difficult to place good value on</p>
-    <li>First Contentful Paint (FCP)</li>
-    <p>1.8 seconds or less</p>
-    <li>Largest Contentful Paint (LCP)</li>
-    <p>2.5 seconds or less</p>
-    <li>First Input Delay (FID)</li>
-    <p>100 milliseconds or less</p>
-    <li>Cumulative Layout Shift (CLS)</li>
-    <p>0.1 or less</p>
-    <li>Time to Interactive</li>
-    <p>Under 5 seconds</p>
-    <li>Critical-Path Resources</li>
-    <p>Under 170kb (minified)</p>
-    <li>Lighthouse Performance Audits</li>
-    <p>95 or above for all</p>
-  </ul>
+
+  <div className='postTable'>
+  
+| Performance Metric             | Target                   |
+| ------------------------------ | ------------------------ |
+| Time to First Byte (TTFB)      | ?                        |
+| First Contentful Paint (FCP)   | 1.8 seconds or less      |
+| Largest Contentful Paint (LCP) | 2.5 seconds or less      |
+| First Input Delay (FID)        | 100 milliseconds or less |
+| Cumulative Layout Shift (CLS)  | 0.1 or less              |
+| Time to Interactive (TTI)      | Under 5 seconds          |
+| Critical-Path Resources        | Under 170kb (minified)   |
+| Lighthouse Performance Audits  | 95 or above for all      |
+
+  </div>
 </div>
 
 export default ({ children }) => <LayoutPost>{children}</LayoutPost>;

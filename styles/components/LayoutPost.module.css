@@ -1,0 +1,22 @@
+.postContainer {
+  margin-left: 20%;
+  margin-right: 20%;
+  margin-bottom: 3rem;
+}
+
+.post {
+  font-size: 1.25rem;
+}
+
+.post h1,
+.post h2,
+.post h3,
+.post h4,
+.post h5,
+.post h6 {
+  margin-top: 2.5rem;
+}
+
+.post * {
+  margin: 1rem 0;
+}

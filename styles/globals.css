@@ -66,3 +66,14 @@ img {
   max-width: 100%;
   height: auto;
 }
+
+.postTable table {
+  border-spacing: 0px;
+  border-collapse: separate;
+}
+
+.postTable th,
+.postTable td {
+  border: 1px solid black;
+  padding: 5px;
+}
