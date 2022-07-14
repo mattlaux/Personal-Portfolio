@@ -145,4 +145,15 @@ import LayoutPost from '../components/layoutPost';
   </div>
 </div>
 
-export default ({ children }) => <LayoutPost>{children}</LayoutPost>;
+export default ({ children }) => (
+  <LayoutPost
+    url="https://mattlaux.com"
+    openGraphType="website"
+    schemaType="website"
+    title="Software project management plan"
+    description="View the software project management plan for this portfolio site. The SPMP includes a scope of work, project plan, and performance budget."
+    image="https://mattlaux.com/images/profilePic.webp"
+  >
+    {children}
+  </LayoutPost>
+);

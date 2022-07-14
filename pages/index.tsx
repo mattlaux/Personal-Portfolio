@@ -1,5 +1,4 @@
 import type { NextPage } from 'next';
-import Head from 'next/head';
 import Image from 'next/image';
 import styles from '../styles/Home.module.css';
 import Button from '../components/button';
@@ -8,18 +7,19 @@ import SoftSkillCard from '../components/softSkillCard';
 import PortfolioProject from '../components/portfolioProject';
 import Header from '../components/headers/header';
 import Footer from '../components/footer';
+import SEO from '../components/SEO/seo';
 
 const Home: NextPage = () => {
   return (
     <div>
-      <Head>
-        <title>Matt Laux Portfolio</title>
-        <meta
-          name="description"
-          content="Professional web development portfolio site for Matt Laux."
-        />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+      <SEO
+        url="https://mattlaux.com"
+        openGraphType="website"
+        schemaType="website"
+        title="Matt Laux portfolio"
+        description="Professional web development portfolio site for Matt Laux. View past projects, blog posts, and skills."
+        image="https://mattlaux.com/images/profilePic.webp"
+      />
       <Header />
       <main className={styles.main}>
         <section className={styles.about} id="about">
