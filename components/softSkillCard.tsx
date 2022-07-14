@@ -1,4 +1,4 @@
-import styles from '../styles/SoftSkillCard.module.css';
+import styles from '../styles/components/SoftSkillCard.module.css';
 
 interface Props {
   skillTitle: string;
