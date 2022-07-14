@@ -1,11 +1,15 @@
 .cta {
   background-color: #caebf2;
-  margin: 0 20%;
+  margin: 0 10%;
   border-radius: 10px;
-  padding: 1rem;
+  padding: 3rem;
   display: flex;
   align-items: center;
   justify-content: space-around;
+}
+
+.ctaHeader {
+  font-size: 1.5rem;
 }
 
 @media (max-width: 600px) {
