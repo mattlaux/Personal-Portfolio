@@ -1,5 +1,5 @@
 import Button from './button';
-import styles from '../styles/PortfolioProject.module.css';
+import styles from '../styles/components/PortfolioProject.module.css';
 import Image from 'next/image';
 
 interface Props {

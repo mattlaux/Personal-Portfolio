@@ -1,0 +1,31 @@
+.footer {
+  text-align: center;
+  background-color: lightgray;
+  padding-bottom: 3rem;
+}
+
+.footer h2 {
+  padding: 2rem;
+  font-size: 2rem;
+}
+
+.footerSlogan {
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+  width: 25%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.resumeButton {
+  margin-bottom: 2rem;
+}
+
+.footer p {
+  padding: 0.5rem;
+}
+
+.cta {
+  position: relative;
+  top: -25px;
+}
