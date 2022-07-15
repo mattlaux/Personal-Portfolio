@@ -9,14 +9,32 @@
 }
 
 .post h1,
+.post figure {
+  text-align: center;
+}
+
+.post h1,
 .post h2,
 .post h3,
 .post h4,
 .post h5,
 .post h6 {
   margin-top: 2.5rem;
+  font-weight: bold;
 }
 
 .post * {
   margin: 1rem 0;
+}
+
+.post a {
+  text-decoration: underline;
+  color: blue;
+}
+
+.code {
+  background-color: whitesmoke;
+  padding: 2rem;
+  border-radius: 1rem;
+  overflow: auto;
 }
