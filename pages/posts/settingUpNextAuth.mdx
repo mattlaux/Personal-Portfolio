@@ -34,10 +34,11 @@ For the online payments system we will use Stripe.
 
 ### Table of Contents
 
-1. Create initial Next.js project
-2. Establish .env file for API keys
-3. Set up Prisma with PostgreSQL database
-4. Set up NextAuth.js
+1. <a href='#nextjs'>Create initial Next.js project</a>
+2. <a href='#env'>Establish .env file for API keys</a>
+3. <a href='#prisma'>Set up Prisma with PostgreSQL database</a>
+4. <a href='#nextauth'>Set up NextAuth.js</a>
+5. <a href='#test'>Test NextAuth.js flow</a>
 
 ### Example signup and payment flow
 
@@ -52,6 +53,7 @@ Below I detail the signup and payment flow for our example web application.
 7. User cancels subscription
 8. User record in locally hosted database is updated to non-pro
 9. Stripe customer record is updated to non-paying customer
+<div id='nextjs'></div>
 
 ## Create initial Next.js project
 
@@ -66,6 +68,7 @@ A prompt stating you need to install create-next-app may appear. This is okay to
 
 Continue through the prompts entering all of the necessary information. Allow npm to install the necessary dependencies. This
 process can take a while.
+<div id='env'></div>
 
 ## Establish .env file for API keys
 
@@ -76,6 +79,7 @@ In your root folder add a file titled _.env_. Leave this file blank for now.
 
 If you check the _.gitignore_ file that was created for you, you will see that the .env file is already included. This ensures
 that your .env file will not be uploaded to version control.
+<div id='prisma'></div>
 
 ## Set up Prisma with PostgreSQL database
 
@@ -391,6 +395,7 @@ After saving this file, the Typescript error should disappear. Until Prisma rele
 need to use this code as a workaround.
 
 Your database should now be ready to integrate with NextAuth.js.
+<div id='nextauth'></div>
 
 ## Set up NextAuth.js
 
@@ -577,7 +582,7 @@ declare module 'next-auth' {
 
 </div>
 
-## Add SessionProvider to application
+### Add SessionProvider to application
 
 The final step in setting up NextAuth.js is wrapping your components in a session provider. This allows the session object
 to be passed across components which is required for the use of *useSession()*.
@@ -606,6 +611,7 @@ export default MyApp;
 ```
 
 </div>
+<div id='test'></div>
 
 ## Test NextAuth.js flow
 
