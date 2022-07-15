@@ -33,7 +33,7 @@ const Home: NextPage = () => {
               I am primarily interested in full-stack engineering positions.
             </p>
             <p>
-              I have experience with React and NextJS on the frontend. On the
+              I have experience with React and Next.js on the frontend. On the
               backend I have experience with Express and PostgreSQL.
             </p>
             <div id="portfolio"></div>
@@ -55,7 +55,7 @@ const Home: NextPage = () => {
             title="RetailAlgoTrader"
             text="RetailAlgoTrader is a resource developed for retail algorithmic
                 traders. Notable features include educational courses and a
-                template generator. This site was created with NextJS for the
+                template generator. This site was created with Next.js for the
                 frontend and backend."
             imagePath="/images/ratDashboard.webp"
             imageAlt="RetailAlgoTrader homepage"
@@ -199,7 +199,7 @@ const Home: NextPage = () => {
                   width={432}
                   height={96}
                 />
-                <figcaption>NextJS</figcaption>
+                <figcaption>Next.js</figcaption>
               </figure>
               <figure className={styles.iconText}>
                 <Image
@@ -383,9 +383,15 @@ const Home: NextPage = () => {
             have encountered.
           </p>
           <div className={styles.grid}>
-            <a href="https://nextjs.org/docs" className={styles.card}>
-              <h2>Blog Post #1 &rarr;</h2>
-              <p>Find in-depth information about Next.js features and API.</p>
+            <a href="/posts/settingUpNextAuth" className={styles.card}>
+              <h2>
+                How to integrate Stripe webhook with Next.js and PostgreSQL
+                &rarr;
+              </h2>
+              <p>
+                Discover how to properly and securely implement a Stripe webhook
+                with a Next.js framework and a PostgreSQL database.
+              </p>
             </a>
 
             <a href="https://nextjs.org/learn" className={styles.card}>
