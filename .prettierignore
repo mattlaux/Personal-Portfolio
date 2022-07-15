@@ -33,3 +33,6 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# mdx posts (Prettier was causing issues with code blocks in mdx files)
+/pages/posts
