@@ -7,4 +7,5 @@
   bottom: 1rem;
   right: 2rem;
   border-radius: 5px;
+  z-index: 2;
 }
