@@ -385,18 +385,24 @@ const Home: NextPage = () => {
           <div className={styles.grid}>
             <a href="/posts/settingUpNextAuth" className={styles.card}>
               <h2>
-                How to integrate Stripe webhook with Next.js and PostgreSQL
-                &rarr;
+                How to integrate NextAuth.js and Stripe with NextJS and
+                PostgreSQL: Part I &rarr;
               </h2>
               <p>
-                Discover how to properly and securely implement a Stripe webhook
-                with a Next.js framework and a PostgreSQL database.
+                Discover how to implement authentication and authorization with
+                NextAuth.js.
               </p>
             </a>
 
-            <a href="https://nextjs.org/learn" className={styles.card}>
-              <h2>Blog Post #2 &rarr;</h2>
-              <p>Learn about Next.js in an interactive course with quizzes!</p>
+            <a href="/posts/settingUpStripe" className={styles.card}>
+              <h2>
+                How to integrate NextAuth.js and Stripe with NextJS and
+                PostgreSQL: Part II &rarr;
+              </h2>
+              <p>
+                Integrate online payments through Stripe with NextAuth.js and
+                postgreSQL.
+              </p>
             </a>
 
             <a

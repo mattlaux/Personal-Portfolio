@@ -1,0 +1,680 @@
+import LayoutPost from '../../components/layoutPost';
+import Image from 'next/image';
+import Link from 'next/link';
+import styles from '../../styles/components/LayoutPost.module.css';
+import Button from '../../components/button';
+
+# How to integrate NextAuth.js and Stripe with NextJS and PostgreSQL: Part II
+
+<figure>
+  <Image
+    src="/images/posts/settingUpStripe/stripeHomepage.webp"
+    className="rounded"
+    height={1254}
+    width={1476}
+    alt=""
+  />
+</figure>
+
+This is the second part of a two-part series. If you have not read <Link href='/posts/settingUpNextAuth'><a>Part I</a></Link>, I recommend giving it a look.
+
+## Overview
+
+In the first guide we created a Next.js application with NextAuth.js implemented for authentication and authorization. 
+
+This guide builds upon that to add an online payments system through Stripe.
+
+For the backend we will use a postgreSQL database with Prisma as the ORM.
+
+For authentication and authorization we will use NextAuth.js with the Auth0 provider.
+
+For the online payments system we will use Stripe.
+
+If you would like to view or copy the completed code for these two guides you can find it 
+<Link href='https://github.com/mattlaux/NextAuth.js_And_Stripe_Next.js_Example'><a>here on Github</a></Link>.
+
+### Table of Contents
+
+1. <a href='#stripe'>Set up Stripe</a>
+2. <a href='#stripeWithNextAuth'>Integrate Stripe with NextAuth.js</a>
+3. <a href='#onlinePayments'>Add online payments</a>
+4. <a href='#testPayments'>Test online payments</a>
+5. <a href='#nextSteps'>Next steps</a>
+
+### Example signup and payment flow
+
+Below I detail the signup and payment flow for our example web application.
+
+1. User signups through NextAuth.js Auth0 provider
+2. New user is created in locally hosted database
+3. New customer is created in Stripe's hosted services
+4. User upgrades subscription status to pro
+5. User record in locally hosted database is updated to pro
+6. Stripe customer record is updated to pro with billing and subscription information
+<div id='stripe' />
+
+## Set up Stripe
+
+If you are accepting online payments Stripe is one of your best options. It abstracts away much of the logic while allowing
+sufficient customization to create the specific solution that you need.
+
+Through Stripe you can allow online payments, subscriptions, billing information management, and much more with minimal code.
+
+Stripe is absolutely packed with features; however, in this guide we will simply use it to allow users to signup for a paid subscription.
+
+### Create Stripe account
+
+Before we can integrate Stripe with our Next.js application, we need to <Link href='https://stripe.com'><a>create a Stripe account.</a></Link>
+
+While setting up Stripe accounts, Stripe may ask you to enter specific information about your business. At this point in time,
+you most likely do not have this information. That is fine. You can skip this for now. 
+
+Until you verify your business, you will have a test account and will not be able to accept real payments. For our purposes this is sufficient.
+
+After creating your account as well as an account for your business, navigate to the homepage of your business account.
+
+On the homepage you will see an area titled *For developers*. This area contains the *Publishable key* and *Secret key* values 
+we need to add to our *.env.local* file:
+
+<div className={styles.code}>
+
+```
+...
+
+# STRIPE
+
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxxxxxx  
+STRIPE_SECRET_KEY=sk_test_xxxxxx
+STRIPE_WEBHOOK_SECRET=whsec_xxxxxx
+```
+
+</div>
+
+<p id='stripeWithNextAuth'>The STRIPE_WEBHOOK_SECRET we will not have quite yet. This will come once we set up the Stripe webhook. You can leave this value blank for now.</p>
+
+## Integrate Stripe with NextAuth.js
+
+First we need to install the Stripe package:
+
+<div className={styles.code}>
+  ```
+  npm install stripe
+  ```
+</div>
+
+After installing the Stripe package, we need to add a Stripe event to the *[...nextauth].ts* file. NextAuth.js has a 
+<Link href='https://next-auth.js.org/configuration/events'><a>handful of events</a></Link> that can be handled.
+
+We will be using the *createUser* event to ensure that a Stripe customer is created.
+
+Below I have detailed how our createUser event will work:
+
+1. Create a Stripe API client instance
+2. Create a Stripe customer on Stripe's servers
+3. Update the user table in the local database with the Stripe customer ID
+
+<div className={styles.code}>
+
+```
+
+...
+import Stripe from 'stripe';
+
+export default NextAuth({
+  adapter: ...,
+  providers: ...,
+  callbacks: ...,
+  events: {
+    // Creates a Stripe customer and populates database on signup
+    createUser: async ({ user }) => {
+      // Create stripe API client using the secret key env variable
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+        apiVersion: '2020-08-27',
+      });
+
+      // Create a stripe customer for the user with their email address
+      await stripe.customers
+        .create({
+          email: user.email!,
+        })
+        .then(async (customer) => {
+          // Use the Prisma Client to update the user in the database with their new Stripe customer ID   
+          return prisma.user.update({
+            where: { id: user.id },
+            data: {
+              stripeCustomerId: customer.id,
+            },
+          });
+        });
+    },
+  },
+});
+
+```
+
+</div>
+
+Now that we have the createUser event added we can test that a Stripe customer is added when a new user is added to our
+database.
+
+If you have previously logged-in to your web application then delete the row from the *User* table.
+
+Now log in to your web application as you did previously and then check your Stripe dashboard. At the top is a header called *Customers*.
+
+<p id='onlinePayments'>There should be a new customer added that matches your user information. In addition, if you check your postgreSQL database
+you should see that the *stripeCustomerId* field is now populated and matches the customer id from the Stripe dashboard.</p>
+
+## Add online payments
+
+One of the great benefits of Stripe is that we have access to a checkout page hosted by Stripe. This handles all of the financial
+data and security so that we do not have to.
+
+The downside of this method is that we have to use a webhook to communicate with Stripe. Webhooks can be a little complicated but
+they are significantly easier than attempting to code our own payment system.
+
+### Create Stripe webhook
+
+The Stripe webhook offers a secure way for us to handle different events from the Stripe API. 
+
+For example, when one of our customers signs up for a monthly subscription we can have custom code that then updates their
+status in our postgreSQL database.
+
+Stripe events are extremely powerful and can allow you to accomplish many different functionalities with your web application.
+
+Before we create our Stripe webhook there are a couple of packages we need to install:
+
+<div className={styles.code}>
+  ```
+  npm install micro micro-cors
+  ```
+</div>
+<div className={styles.code}>
+  ```
+  npm install --save-dev @types/micro @types/micro-cors
+  ```
+</div>
+
+If you have any experience with web security, you may be wondering why we need to enable CORS. By default all Next.js API routes
+are same-origin only. The micro-cors package allows our webhook to communicate with our API paths.
+
+In the *pages/api* folder create a folder called *stripe*. In this folder add a file called *webhooks.ts* with the following code:
+
+<div className={styles.code}>
+
+```
+import { buffer } from "micro";
+import Cors from "micro-cors";
+import { NextApiRequest, NextApiResponse } from "next";
+import Stripe from "stripe";
+import prisma from "../../../prisma/sharedClient";
+
+// https://vercel.com/guides/getting-started-with-nextjs-typescript-stripe
+
+// Load Stripe package for Node environment
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2020-08-27",
+});
+
+const webhookSecret: string = process.env.STRIPE_WEBHOOK_SECRET!;
+
+// Stripe requires the raw body to construct the event.
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
+const cors = Cors({
+  allowMethods: ["POST", "HEAD"],
+});
+
+const webhookHandler = async (req: NextApiRequest, res: NextApiResponse) => {
+  if (req.method === "POST") {
+    const buf = await buffer(req);
+    const sig = req.headers["stripe-signature"]!;
+
+    let event: Stripe.Event;
+
+    try {
+      event = stripe.webhooks.constructEvent(
+        buf.toString(),
+        sig,
+        webhookSecret
+      );
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      // On error, log and return the error message.
+      if (err! instanceof Error) console.log(err);
+      console.log(`❌ Error message: ${errorMessage}`);
+      res.status(400).send("Webhook Error");
+      return;
+    }
+
+    // Successfully constructed event.
+    console.log("✅ Success:", event.id);
+
+    // Cast event data to Stripe object.
+    if (event.type === "payment_intent.succeeded") {
+      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      console.log(`💰 PaymentIntent status: ${paymentIntent.status}`);
+    } else if (event.type === "payment_intent.payment_failed") {
+      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      console.log(
+        `❌ Payment failed: ${paymentIntent.last_payment_error?.message}`
+      );
+    } else if (event.type === "charge.succeeded") {
+      const charge = event.data.object as Stripe.Charge;
+      console.log(`💵 Charge id: ${charge.id}`);
+    } else if (event.type === "customer.subscription.created") {
+      const subscription = event.data.object as Stripe.Subscription;
+      console.log(subscription.customer);
+      await prisma.user.update({
+        // Find the customer in our database with the Stripe customer ID linked to this purchase   
+        where: {
+          stripeCustomerId: subscription.customer as string,
+        },
+        // Update that customer so their status is now active
+        data: {
+          isPro: true,
+        },
+      });
+    } else {
+      console.warn(`🤷‍♀️ Unhandled event type: ${event.type}`);
+    }
+    // Return a response to acknowledge receipt of the event.
+    res.json({ received: true });
+  } else {
+    res.setHeader("Allow", "POST");
+    res.status(405).end("Method Not Allowed");
+  }
+};
+
+export default cors(webhookHandler as any);
+```
+
+</div>
+
+There is a lot of code here. We are interested in the section with the comment *// Cast event data to Stripe object*.
+
+Stripe has many different events that can be included in this file.
+
+In our case we are focused on the following event:
+
+- customer.subscription.created
+
+In these events you will notice a line of code *prisma.user.update*. This line of code allows
+CRUD operations to be completed by Prisma.
+
+This is much more simple than writing your own SQL to query the database anytime you want to adjust a record. Additional 
+information about conducting CRUD operations through Prisma can be found in the <Link href='https://www.prisma.io/docs/concepts/components/prisma-client/crud#update-a-single-record'><a>Prisma documentation</a></Link>.
+
+The following events have also been included as additional examples but have no functionality other than logging to the console:
+
+- payment_intent.succeeded
+- payment_intent.payment_failed
+- charge.succeeded
+
+A list of all Stripe events can be found in this <Link href='https://stripe.com/docs/api/events/types'><a>Stripe documentation</a></Link>.
+
+If you are interested in learning about the other code included in this webhooks file, the following <Link href='https://vercel.com/guides/getting-started-with-nextjs-typescript-stripe'><a>guide</a></Link>
+includes additional information.
+
+#### customer.subscription.created
+
+This event will occur when a new user signs up for a paid subscription which we will add shortly. The customer's Stripe id will
+be retrieved from the Stripe event object. This id number will be matched with the *stripeCustomerId* field from our postgreSQL database
+and the *isPro* field will be updated to true. 
+
+Our system can now differentiate non-paying and paying customers.
+
+### Install Stripe CLI 
+
+We will use the Stripe CLI to communicate with the Stripe API and host the webhook.
+
+Follow <Link href='https://stripe.com/docs/stripe-cli'><a>this guide</a></Link> to install and set up the Stripe CLI.
+
+Now we need to start our webhook so that it can listen for Stripe events. Open a new terminal and enter the following line:
+
+<div className={styles.code}>
+  ```
+  stripe listen --forward-to localhost:3000/api/stripe/webhooks
+  ```
+</div>
+
+Ensure that the URL path matches your specific folder structure.
+
+If your webhook successfully starts you will see the following message in your terminal:
+
+<div className={styles.code}>
+  ```
+  Ready! You are using Stripe API Version [2020-08-27]. Your webhook signing secret is whsec_xxxxxxxxx (^C to quit)
+  ```
+</div>
+
+The signing secret will be *whsec_* followed by a very long string. You need to copy this entire string and add it to your
+*.env.local* file for the empty STRIPE_WEBHOOK_SECRET variable.
+
+### Create Stripe subscription plan
+
+Before our customers can sign up for a paid subscription, we need to create the subscription plan in our Stripe account.
+
+On your business' Stripe dashboard there should be a header called *products*. Click *Add a product* and give the product a 
+name. Leave the Pricing model on *Standard pricing*, set a price of *$10.00* that recurs monthly. Then click *Save product*.
+
+You should now see a summary page of your product details. Under the *Pricing* section should be an *API ID* header with a 
+value that looks like *price_j3Kadoe8Ejdn*.
+
+In your *.env.local* file add the following variable:
+
+<div className={styles.code}>
+  ```
+  STRIPE_SUBSCRIPTION=price_j3Kadoe8Ejdn
+  ```
+</div>
+
+Be sure to replace the *price_* string with your applicable string.
+
+### Create Stripe checkout session
+
+As mentioned earlier, one of the benefits of using Stripe is that we do not need to create our own checkout page. Instead, we
+will create an API path that opens a Stripe-hosted checkout session for our users.
+
+First we will create a file called *stripe.config.ts* in your root folder with the following code:
+
+<div className={styles.code}>
+  ```
+  export const AMOUNT = 10.0
+  ```
+</div>
+
+This value is the dollar amount for your subscription plan. It is best practice to declare this variable in one location and then
+import it where needed. As your web application grows, you can use this variable to display the price on landing pages, submit the price to Stripe checkout pages,
+etc.
+
+If you need to change it you only need to change it in one location. In addition, as your business grows you will more than likely
+end up with multiple products. The *stripe.config.ts* files helps to keep these products and their prices organized.
+
+Next we will add a button to our dashboard page:
+
+<div className={styles.code}>
+```
+{session?.user.isPro ? (
+  <h2>You have a pro subscription</h2>
+) : (
+  <h2>You do not have a pro subscription</h2>
+)}
+<button onClick={() => handleCheckout()}>Upgrade to Pro Subscription</button>
+```
+</div>
+
+Now we will create the *handleCheckout* function. In your root folder create a folder called *library* with file a called
+*handleCheckout.ts* with the following code:
+
+<div className={styles.code}>
+
+```
+import { fetchPostJSON } from './fetchJSON';
+import { AMOUNT } from '../stripe.config';
+import getStripe from './getStripe';
+
+export const handleCheckout = async () => {
+  // Create a Checkout Session.
+  const response = await fetchPostJSON(
+    '/api/stripe/checkoutSession',
+    {
+      amount: AMOUNT,
+    }
+  );
+  if (response.statusCode === 500) {
+    console.error(response.message);
+  }
+  // Redirect to Checkout.
+  const stripe = await getStripe();
+  const { error } = await stripe!.redirectToCheckout({   
+    sessionId: response.id,
+  });
+  console.warn(error.message);
+};
+```
+
+</div>
+
+Be sure to import this function to your *dashboard* page.
+
+There are a few helper functions and API paths we need to add in order to complete the Stripe checkout session process.
+
+#### Create fetchPostJSON function
+
+In your *library* folder add a file called *fetchPostJSON* with the following code:
+
+<div className={styles.code}>
+
+```
+/**
+ * Handles POST requests for Stripe
+ * @param url
+ * @param data Optional data. Transaction amount when used with Stripe
+ * @returns JSON response from API or error
+ */
+export async function fetchPostJSON(
+  url: string,
+  data?: Record<string, unknown>
+) {
+  try {
+    // Default options are marked with *
+    const response = await fetch(url, {
+      method: "POST", // *GET, POST, PUT, DELETE, etc.
+      mode: "cors", // no-cors, *cors, same-origin
+      cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+      credentials: "same-origin", // include, *same-origin, omit
+      headers: {
+        "Content-Type": "application/json",
+      },
+      redirect: "follow", // manual, *follow, error
+      referrerPolicy: "no-referrer", // no-referrer, *client
+      body: JSON.stringify(data || {}), // body data type must match "Content-Type" header   
+    });
+    return await response.json(); // parses JSON response into native JavaScript objects
+  } catch (err) {
+    if (err instanceof Error) {
+      throw new Error(err.message);
+    }
+    throw err;
+  }
+}
+```
+
+</div>
+
+This fetch function includes all of the necessary settings in order to open a Stripe checkout page.
+
+#### Create getStripe function
+
+Install the following package:
+
+<div className={styles.code}>
+  ```
+  npm install @stripe/stripe-js
+  ```
+</div>
+
+In your *library* folder create a function called *getStripe* with the following code:
+
+<div className={styles.code}>
+
+```
+import { Stripe, loadStripe } from "@stripe/stripe-js";
+
+// This is a singleton to ensure we only instantiate Stripe once on the frontend   
+let stripePromise: Promise<Stripe | null>;
+const getStripe = () => {
+  if (!stripePromise) {
+    stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+  }
+  return stripePromise;
+};
+
+export default getStripe;
+```
+
+</div>
+
+This function ensures that we only load Stripe once on the frontend. Loading Stripe multiple times on the frontend can cause issues.
+
+There should now be no errors on your *handleCheckout.ts* file.
+
+#### Create checkoutSession API path
+
+The final step in enabling a Stripe checkout session is the API path. Under your *pages/api/stripe* folder create a file called
+*checkoutSession.ts* with the following code:
+
+<div className={styles.code}>
+
+```
+import { NextApiRequest, NextApiResponse } from "next";
+import { AMOUNT } from "../../../stripe.config";
+import Stripe from "stripe";
+import { getSession } from "next-auth/react";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2020-08-27",
+});
+
+/**
+ * Next API path to connect with Stripe API
+ * @param req
+ * @param res
+ */
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  const session = await getSession({ req });
+
+  if (session) {
+    if (req.method === "POST") {
+      const amount: number = req.body.amount;
+      try {
+        let subscriptionType;
+        // Validate the amount that was passed from the client.
+        if (amount !== AMOUNT) throw new Error();
+        // Create Checkout Sessions from body params.
+        const params: Stripe.Checkout.SessionCreateParams = {
+          mode: "subscription",
+          customer: session.user.stripeCustomerId,
+          payment_method_types: ["card"],
+          line_items: [
+            {
+              price: process.env.STRIPE_SUBSCRIPTION, // Product API Key from Stripe
+              quantity: 1,
+            },
+          ],
+          success_url: `${req.headers.origin}/result?session_id={CHECKOUT_SESSION_ID}`,   
+          cancel_url: `${req.headers.origin}/dashboard`,
+          subscription_data: {
+            metadata: {
+              // Adds note on Stripe so we can manually check if a user is Pro member
+              payingUserId: session.user.id,
+            },
+          },
+        };
+        const checkoutSession: Stripe.Checkout.Session =
+          await stripe.checkout.sessions.create(params);
+        res.status(200).json(checkoutSession);
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Internal server error";
+        res.status(500).json({ statusCode: 500, message: errorMessage });
+      }
+    } else {
+      res.setHeader("Allow", "POST");
+      res.status(405).end("Method Not Allowed");
+    }
+  } else {
+    res
+      .status(401)
+      .send("You must be signed-in to view the protected content on this page");
+  }
+}
+
+```
+
+</div>
+
+This API path is what actually communicates with the Stripe API to open a checkout page. This file has a lot going on and I 
+am not going to discuss all of it.
+
+<p id='testPayments'>If you are interested in learning more about how the Stripe checkout session process works check out 
+<Link href='https://stripe.com/docs/api/checkout/sessions/create?lang=node'><a>this Stripe documentation</a></Link>.</p>
+
+## Test Stripe online payments
+
+Start your development server, log in, and notice that your dashboard reads *You do not have a pro subscription*. Click the 
+*Upgrade to Pro Subscription* button. After a second or two, you should see a Stripe checkout page similar to the one below 
+appear.
+
+<figure>
+  <Image
+    src="/images/posts/settingUpStripe/stripeCheckoutPage.webp"
+    className="rounded"
+    height={864}
+    width={1218}
+    alt=""
+  />
+  <figcaption>Blank Stripe checkout page</figcaption>
+</figure>
+
+Stripe offers a number of different test cards for different situations. In our case we will be using *4242 4242 4242 4242*
+to test our application.
+
+This card will allow you to test your Stripe flow without having to enter any real billing information.
+
+The *MM/YY* field can be any future date, the *CVC* field can be any three numbers, the *name* field can be any combination of 
+letters and numbers, and the *zip* field can be any string of numbers.
+
+After submitting your mock payment information, you should be redirected to your dashboard. There are three checks you should
+perform to ensure the process worked:
+
+1. Your dashboard should now say *You have a pro subscription*
+2. If you click on your customer on the Stripe dashboard it should show an active subscription
+3. The isPro field on your postgreSQL database should read true
+<div id='nextSteps' />
+
+## Next steps
+
+This concludes the two-part series for integrating NextAuth.js and Stripe with a Next.js web application. You now have the
+knowledge and reference materials to provide your web application with authentication and authorization through Next.js.
+
+In addition, you are able to integrate NextAuth.js with Stripe to accept and manage online payments.
+
+These are both essential features to an full-stack web application.
+
+I encourage you to expand upon this example. Refer to the Stripe and NextAuth.js documentation to discover all the different
+features that they offer. Some recommendations for next steps follow:
+
+- Add a pro subscription check on dashboard to restrict user's from signing up for duplicate subscriptions
+- Allow a user to cancel their subscription
+- Add multiple Stripe subscription plans (yearly vs monthly)
+- Allow a user to delete their billing information from Stripe's servers
+- Allow a user to change their billing information from Stripe's servers
+- Allow a user to fully delete their profile from Stripe and the local database
+
+If you would like to view or copy the completed code for these two guides you can find it 
+<Link href='https://github.com/mattlaux/NextAuth.js_And_Stripe_Next.js_Example'><a>here on Github</a></Link>.
+
+<Link href='/posts/settingUpNextAuth'>
+  <a><Button buttonColor="red" buttonText="&larr; Read Part I" /></a>
+</Link>
+
+export default ({ children }) => (
+  <LayoutPost
+    url="https://mattlaux.com"
+    openGraphType="website"
+    schemaType="website"
+    title="Software project management plan"
+    description="View the software project management plan for this portfolio site. The SPMP includes a scope of work, project plan, and performance budget."
+    image="https://mattlaux.com/images/profilePic.webp"
+  >
+    {children}
+  </LayoutPost>
+);
