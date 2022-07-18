@@ -1,0 +1,50 @@
+.headerContainer {
+  background-color: white;
+  opacity: 85%;
+  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.header {
+  padding: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-left: 15%;
+  margin-right: 15%;
+}
+
+.header p {
+  font-size: 2rem;
+  font-weight: bold;
+  display: flex;
+  color: black;
+}
+
+.header a {
+  font-size: 2rem;
+}
+
+@media (max-width: 600px) {
+  .header {
+    margin: 0;
+    display: grid;
+    grid-template-columns: 0.5 fr 1fr 1fr;
+    justify-items: center;
+    align-items: center;
+  }
+
+  .header .name {
+    grid-column: 2 / span 1;
+  }
+
+  .header .contactButton {
+    grid-column: 3 / span 1;
+  }
+
+  .header .homepageButton {
+    display: none;
+  }
+}

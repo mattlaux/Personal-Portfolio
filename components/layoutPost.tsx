@@ -1,4 +1,4 @@
-import Header from './headers/postHeader';
+import PostHeader from './headers/postHeader';
 import Footer from './footer';
 import React from 'react';
 import SEO from './SEO/seo';
@@ -28,7 +28,7 @@ const LayoutPost = (props: Props) => {
       />
       <JumpTopButton />
       <div id="top"></div>
-      <Header />
+      <PostHeader />
       <div className={styles.postContainer}>
         <article className={styles.post}>
           <div>{props.children}</div>
