@@ -15,7 +15,7 @@ const Footer = () => {
       <div className={styles.resumeButton}>
         <Button buttonColor="red" buttonText="Resume" />
       </div>
-      <p>Created with NextJS and hosted on Vercel</p>
+      <p>Created with Next.js and hosted on Vercel</p>
       <p>Made with vanilla CSS</p>
     </footer>
   );

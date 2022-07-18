@@ -4,6 +4,8 @@
   padding: 0.75rem;
   font-size: 1.5rem;
   position: fixed;
-  bottom: 0;
-  right: 1rem;
+  bottom: 1rem;
+  right: 2rem;
+  border-radius: 5px;
+  z-index: 2;
 }

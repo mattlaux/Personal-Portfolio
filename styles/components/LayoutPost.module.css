@@ -6,6 +6,17 @@
 
 .post {
   font-size: 1.25rem;
+  line-height: 2rem;
+  overflow-wrap: break-word;
+}
+
+.post h1,
+.post figure {
+  text-align: center;
+}
+
+.post h1 {
+  line-height: 3rem;
 }
 
 .post h1,
@@ -15,8 +26,37 @@
 .post h5,
 .post h6 {
   margin-top: 2.5rem;
+  font-weight: bold;
 }
 
 .post * {
   margin: 1rem 0;
+}
+
+.post a {
+  text-decoration: underline;
+  color: blue;
+}
+
+.code {
+  background-color: whitesmoke;
+  padding: 2rem;
+  border-radius: 1rem;
+  overflow: auto;
+}
+
+.code * {
+  margin-right: 2rem;
+}
+
+@media (max-width: 600px) {
+  .postContainer {
+    margin-left: 1rem;
+    margin-right: 1rem;
+    margin-bottom: 3rem;
+  }
+
+  .post h1 {
+    margin-top: 0;
+  }
 }

@@ -35,7 +35,7 @@ button {
 ul,
 ol,
 dd {
-  list-style: none;
+  list-style-position: inside;
 }
 
 cite {

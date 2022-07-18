@@ -1,0 +1,765 @@
+import LayoutPost from '../../components/layoutPost';
+import Image from 'next/image';
+import Link from 'next/link';
+import styles from '../../styles/components/LayoutPost.module.css';
+import Button from '../../components/button';
+
+# How to integrate NextAuth.js and Stripe with NextJS and PostgreSQL: Part I
+
+<figure>
+  <Image
+    src="/images/posts/settingUpNextAuth/nextAuthHomepage.webp"
+    className="rounded"
+    height={1254}
+    width={1476}
+    alt=""
+    priority
+  />
+</figure>
+
+As part of my learning process, I have been developing a Saas tool called <Link href='https://retailalgotrader.com'><a>RetailAlgoTrader.</a></Link>
+
+A primary goal of mine is to understand how to develop a full-stack, production-ready web application. As a result, it is necessary
+to implement an authentication and authorization flow as well as on online payments system.
+
+## Overview
+
+In this guide we will walk through step-by-step how to create a Next.js web application with authentication as well as
+online payments.
+
+For the backend we will use a postgreSQL database with Prisma as the ORM.
+
+For authentication and authorization we will use NextAuth.js with the Auth0 provider.
+
+For the online payments system we will use Stripe.
+
+If you would like to view or copy the completed code for these two guides you can find it 
+<Link href='https://github.com/mattlaux/NextAuth.js_And_Stripe_Next.js_Example'><a>here on Github</a></Link>.
+
+### Table of Contents
+
+1. <a href='#nextjs'>Create initial Next.js project</a>
+2. <a href='#env'>Establish .env.local file for API keys</a>
+3. <a href='#prisma'>Set up Prisma with PostgreSQL database</a>
+4. <a href='#nextauth'>Set up NextAuth.js</a>
+5. <a href='#test'>Test NextAuth.js flow</a>
+
+### Example signup and payment flow
+
+Below I detail the signup and payment flow for our example web application:
+
+1. User signs-up through NextAuth.js Auth0 provider
+2. New user is created in locally hosted database
+3. New customer is created in Stripe's hosted services
+4. User upgrades subscription status to pro
+5. User record in locally hosted database is updated to pro
+6. Stripe customer record is updated to pro with billing and subscription information
+<div id='nextjs'></div>
+
+## Create initial Next.js project
+
+For this example we will be using Typescript and npm. If you are interested in discovering the advantages of Typescript over Javascript
+check out <Link href='/posts/typescriptVsJavascript'><a>this article</a></Link>.
+
+Next.js makes it very easy to create a Typescript Next.js project with npm:
+
+<div className={styles.code}>
+  ```
+  npx create-next-app@latest --typescript
+  ```
+</div>
+
+A prompt stating you need to install create-next-app may appear. This is okay to proceed with.
+
+Continue through the prompts entering all of the necessary information. Allow npm to install the necessary dependencies. This
+process can take a while.
+<div id='env'></div>
+
+## Establish .env.local file for API keys
+
+It is extremely important to keep all API keys out of version control. Uploading API keys to version control is a serious security
+flaw as it can allow other people to use your personal API keys. Node uses environment variables to safely manage API keys.
+
+In your root folder add a file titled _.env.local_. Leave this file blank for now.
+
+If you check the _.gitignore_ file that was created for you, you will see that the *.env.local* file is already included. This ensures
+that your *.env.local* file will not be uploaded to version control.
+<div id='prisma'></div>
+
+## Set up Prisma with PostgreSQL database
+
+For our authentication flow we will be using NextAuth.js. NextAuth.js requires an adapter in order to connect to a database. We will
+be using <Link href="https://www.prisma.io/"><a>Prisma</a></Link> for our adapter.
+
+Prisma is a leading ORM for Typescript and SQL. ORMs simplify the manipulation and management of databases as opposed to
+vanilla SQL.
+
+If you are unfamiliar with Prisma that is fine. We will be using very basic features and Prisma is very easy to get started with.
+
+### Establishing PostgreSQL database
+
+For our database we will be using <Link href="https://www.postgresql.org/"><a>PostgreSQL.</a></Link> PostgreSQL is a one of the most popular and dependable SQL based databases.
+
+You can download PostgreSQL at the following <Link href='https://www.postgresql.org/download/'><a>link</a></Link>.
+
+In order to simplify the management of our PostgreSQL database we will be using <Link href="https://www.electronjs.org/apps/postbird"><a>Postbird.</a></Link>
+
+Postbird is a GUI client that runs with Electron. If you are unfamiliar with SQL, Postbird will assist you greatly.
+
+Configuring a PostgreSQL database and connecting Postbird to a PostgreSQL database is outside of the scope of this guide.
+
+If you need assistance in setting up these two programs this <Link href="https://www.codecademy.com/article/installing-and-using-postgresql-locally"><a>article</a></Link> from Codecademy details the process nicely.
+
+### Populating .env.local file
+
+Now that your PostgreSQL database is up and running we need to add the necessary variables to the *.env.local* file.
+
+Before you can do this, you will need to ensure your postgreSQL database has a user with sufficient permissions as well as a password.
+
+When you initially install postgreSQL, a superUser is typically created. However, a password is usually not created. If your user
+does not have a password you need to add one:
+
+<div className={styles.code}>
+  ```
+  ALTER USER name SET PASSWORD 'password'
+  ```
+</div>
+
+*name* and *password* will be specific to your database user.
+
+To start we will add the necessary variables to allow your Next.js application access to your database. If you are hosting your
+database locally then you will most likely use the below values for PGHOST and PGPORT.
+
+PGUSER, PGDATABASE, and PGPASSWORD will be specific to you.
+
+<div className={styles.code}>
+
+```
+# DB
+
+PGHOST='localhost'
+PGUSER='user_name'
+PGDATABASE='database_name'  
+PGPASSWORD='user_password'
+PGPORT=5432
+```
+
+</div>
+
+Next we will add the necessary variables for Prisma:
+
+<div className={styles.code}>
+
+```
+# PRISMA
+
+DATABASE_URL=postgresql://user_name:user_password@localhost:5432/database_name
+```
+
+</div>
+
+Replace _user_name, user_password, and database_name_ with your specific information.
+
+This variable will be used in your _prisma.schema_ file.
+
+### Connect to PostgreSQL database
+
+In your root folder create a file called dbConfig.ts with the below code:
+
+<div className={styles.code}>
+
+```
+interface DB {
+  PGHOST: string | undefined;
+  PGUSER: string | undefined;
+  PGDATABASE: string | undefined;
+  PGPASSWORD: string | undefined;
+  PGPORT: number | undefined;
+}
+
+// .env returns string but ClientConfig.port from pg package requires number   
+// Below code segment changes PGPORT from string to number
+let pgPort = undefined;
+if (process.env.PGPORT) {
+  pgPort = parseInt(process.env.PGPORT);
+}
+
+const DB: DB = {
+  PGHOST: process.env.PGHOST,
+  PGUSER: process.env.PGUSER,
+  PGDATABASE: process.env.PGDATABASE,
+  PGPASSWORD: process.env.PGPASSWORD,
+  PGPORT: pgPort,
+};
+
+export default DB;
+```
+
+</div>
+
+This file retrieves the database and Stripe enviromental variables and exports them for use in other files.
+
+Next we will install the _pg_ package. This package supports connecting PostgreSQL databases and node applications.
+
+<div className={styles.code}>
+  ```
+  npm install pg 
+  npm install --save-dev @types/pg  
+  ```
+</div>
+
+Create a folder in the root folder called _db_. In the _db_ folder create a file called _index.ts_ with the below info:
+
+<div className={styles.code}>
+
+```
+import { Pool } from 'pg';
+import DB from '../config';
+
+// Creates new pool instance for Postgres from .env
+// Import this pool into all API routes that require a pool connection  
+const pool = new Pool({
+  user: DB.PGUSER,
+  host: DB.PGHOST,
+  database: DB.PGDATABASE,
+  password: DB.PGPASSWORD,
+  port: DB.PGPORT,
+});
+
+export default pool;
+```
+
+</div>
+
+The above code uses the _pg_ package to create a pool connection. This pool connection will handle all requests to and from
+your PostgresSQL database.
+
+### Installing and Configuring Prisma
+
+The following code will install Prisma for your use:
+
+<div className={styles.code}>
+  ```
+  npm install prisma --save-dev
+  ```
+</div>
+
+Next create a _Prisma_ folder in your root folder. Then create a file called _schema.prisma_
+in the Prisma folder with the below content:
+
+<div className={styles.code}>
+
+```
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Account {
+  id                String @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)   
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String @id @default(cuid())
+  sessionToken String @unique
+  userId       String
+  expires      DateTime
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id               String @id @default(cuid())
+  name             String?
+  email            String? @unique
+  emailVerified    DateTime?
+  image            String?
+  accounts         Account[]
+  sessions         Session[]
+  stripeCustomerId String? @unique
+  isPro             Boolean @default(false)
+}
+
+model VerificationToken {
+  identifier   String
+  token String @unique
+  expires      DateTime
+
+  @@unique([identifier, token])
+}
+
+```
+</div>
+
+This schema includes all of the necessary models and fields for NextAuth.js and Stripe and can be found at <Link href='https://next-auth.js.org/adapters/prisma'><a>Next.js' Prisma documentation.</a></Link>
+
+The stripeCustomerId and isPro fields have been added to the User table in order to support Stripe.
+
+Now we need to perform a Prisma migration to populate your database with the correct tables and fields.
+
+<div className={styles.code}>
+  ```
+  npx prisma migrate dev
+  ```
+</div>
+
+Enter a name for the migration such as _initial_migration_.
+
+Allow the process to complete and then check your database. It should now be populated with the tables and fields
+specified in your _schema.prisma_ file.
+
+Primsa used the schema from _prisma.schema_ and the credentials from *.env.local* to run a series of SQL commands to populate the database.
+
+This process will also automatically create a migrations folder in your prisma folder.
+
+If you run into any issues with the migration be sure to check the syntax of your _schema.prisma_ file. It can be easy to make a mistake.
+
+Also check that your database is up and running through the Postgres and Postbird applications.
+
+Finally, ensure that the credentials you have entered into your _.env.local_ file are correct.
+
+Setting up and connecting to a database can be a tricky process. If have spent hours troubleshooting and are still running into
+issues feel free to shoot me an email.
+
+### Instantiating a Prisma client
+
+A Prisma client is what you will use to interact with your PostgreSQL database. It is important that you only create a single
+Prisma client that you then import when needed.
+
+Next.js includes a very useful feature called Fast Refresh. Unfortunately, this feature will repeatedly open new Prisma clients
+without closing the previous.
+
+This is not an issue in production, but in development it can cause issues and warnings. As a result, there is some code included
+in the *sharedClient.ts* file to create a global Prisma client when in development.
+
+NOTE: You want to ensure that the global Prisma client is only created when in a development environment.
+
+If you would like to learn more about this issue you can read about it in the two links included in the below code.
+
+In your prisma folder create a file called _sharedClient.ts_ with the following content:
+
+<div className={styles.code}>
+  
+```
+import { PrismaClient } from "@prisma/client";
+import type { PrismaClient as PrismaClientType } from "@prisma/client";
+
+let prisma: PrismaClientType;
+
+// Nextjs Fast Refresh causes many instances of the Prisma client to open during development  
+// The below code restricts one Prisma client for development and one for production
+// https://www.prisma.io/docs/support/help-articles/nextjs-prisma-client-dev-practices
+// https://github.com/prisma/prisma/issues/6219
+
+if (process.env.NODE_ENV === "production") {
+  prisma = new PrismaClient();
+} else {
+  if (!global.prisma) {
+    global.prisma = new PrismaClient();
+  }
+  prisma = global.prisma;
+}
+
+export default prisma;
+```
+
+</div>
+
+Now you are probably receiving the Typescript error: 
+
+*Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.*
+
+The cause of this error is not immediately evident and it has caused many developers hours of frustration. Since Prisma was
+designed with a global Prisma client in mind, it does not have built-in Typescript support for it.
+
+As a result, we need to add our own custom Typescript support. In your root folder create a folder called *types*.
+
+In this folder create a file called *prisma.d.tx* with the following content:
+
+<div className={styles.code}>
+
+```
+import type { PrismaClient } from '@prisma/client';
+
+declare global {
+  // supports global prisma client for use in development in sharedClient file
+  // let and const cause errors to be thrown in the Prisma sharedClient file
+  // https://www.prisma.io/docs/support/help-articles/nextjs-prisma-client-dev-practices  
+  // eslint-disable-next-line no-var
+  var prisma: PrismaClient;
+}
+```
+
+</div>
+
+After saving this file, the Typescript error should disappear. Until Prisma releases an official fix for this issue we will
+need to use this code as a workaround.
+
+Your database should now be ready to integrate with NextAuth.js.
+<div id='nextauth'></div>
+
+## Set up NextAuth.js
+
+NextAuth.js is one of the best options for setting up authentication and authorization with Next.js. It is the recommended option
+from Next.js' documentation.
+
+With NextAuth.js you can use a variety of OAuth providers such as Google or Facebook. In addition, you can use a standard email
+and password login flow.
+
+NextAuth.js can use sessions through a database or it can use JSON web tokens for authentication if you do not have a backend.
+
+In our case we will be using sessions supported by a postgreSQL database.
+
+The <Link href='https://next-auth.js.org/getting-started/introduction'><a>NextAuth.js documentation</a></Link> is very detailed and is a great resource to keep bookmarked.
+
+Before we get started implementing NextAuth, we need to install the *next-auth* and the *next-auth/prisma-adapter* packages:
+
+<div className={styles.code}>
+  ```
+  npm install next-auth @next-auth/prisma-adapter
+  ```
+</div>
+
+### Create the [...nextauth].ts file
+
+The first step to implementing NextAuth.js is setting up the *[...nextauth].ts* file.
+
+This file acts as the dynamic route handler for NextAuth.js and contains all of the global NextAuth.js configurations.
+
+Under the *pages/api* folder delete the file: *hello.ts*. Next create a folder called *auth* and inside add a file called
+*[...nextauth].ts* with the following content:
+
+<div className={styles.code}>
+
+```
+import NextAuth from 'next-auth';
+import Auth0Provider from 'next-auth/providers/auth0';
+import { PrismaAdapter } from '@next-auth/prisma-adapter';
+import prisma from '../../../prisma/sharedClient';
+
+// https://next-auth.js.org/getting-started/example
+export default NextAuth({
+  adapter: PrismaAdapter(prisma),
+  providers: [
+    Auth0Provider({
+      clientId: process.env.AUTH0_ID || '',
+      clientSecret: process.env.AUTH0_SECRET || '',
+      issuer: process.env.AUTH0_ISSUER,
+    }),
+  ],
+  callbacks: {
+    // Adds userId, stripeCustomerId, and isPro boolean from DB to the default session values   
+    session: async ({ session, user }) => {
+      if (typeof user.id === 'string') session.user.id = user.id;
+      if (typeof user.stripeCustomerId === 'string') {
+        session.user.stripeCustomerId = user.stripeCustomerId;
+      }
+      if (typeof user.isPro === 'boolean') session.user.isPro = user.isPro;
+      return Promise.resolve(session);
+    },
+  },
+})
+```
+
+</div>
+
+The Auth0Provider will not work until we create an <Link href='https://auth0.com/Auth0'><a>auth0 account</a></Link>.
+
+After you have completed the sign-up process, click *Applications* and *Create New Application*. After you create your
+new application you can view its' settings. These values will need to be added to your *.env.local* file.
+
+The *Client ID* setting will be AUTH0_ID. The *Client Secret* setting will be AUTH0_SECRET. The *Domain* setting will be
+AUTH0_ISSUER.
+
+The NEXTAUTH_URL variable is simply the url that your site is hosted at.
+
+The NEXTAUTH_SECRET variable is a random string that NextAuth.js uses to encrypt various features.
+
+Paste the following code into your terminal to provide you with a sufficient string:
+
+<div className={styles.code}>
+  ```
+  openssl rand -base64 32
+  ```
+</div>
+
+Your new *.env.local* file should look like the example below:
+
+<div className={styles.code}>
+
+```
+# DB
+
+PGHOST='localhost'
+PGUSER='user_name'
+PGDATABASE='database_name'
+PGPASSWORD='user_password'
+PGPORT=5432
+
+# PRISMA
+
+DATABASE_URL=postgresql://user_name:user_password@localhost:5432/database_name   
+
+# NEXT-AUTH
+
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=generated_secret_string
+AUTH0_ID=auth0_client_id
+AUTH0_SECRET=auth0_client_secret
+AUTH0_ISSUER=https://auth0_domain
+```
+
+</div>
+
+In addition, you need to add an allowed callback url and an allowed logout url to your Auth0 application. This can be seen if you scroll down on the
+settings page.
+
+In our example our allowed callback URL will be *http://localhost:3000/api/auth/callback/auth0* and our allowed logout url
+will be *http://localhost:3000/*.
+
+<figure>
+  <Image
+    src="/images/posts/settingUpNextAuth/auth0Urls.png"
+    height={764}
+    width={974}
+    alt=""
+  />
+  <figcaption>Auth0 Urls</figcaption>
+</figure>
+
+If you use a provider other than Auth0 the process will look slightly different. Github is another great option and is very
+simple to set up.
+
+#### Add callback to [...nextauth].ts
+
+While we are working on the *[...nextauth].ts* file, we will want to add a <Link href='https://next-auth.js.org/configuration/callbacks'><a>session callback.</a></Link>
+
+A callback will run anytime the specified event occurs. In our case we want our callback to run when a new session is created.
+
+Our callback will add the user.id, the user.stripeCustomerId, and the user.isPro fields from our database to our session object. 
+
+We will use this session object later on. You will notice that we are using type protection through *typeof* to ensure that
+we are only assigning strings to user.id, user.stripeCustomerId, and user.isPro.
+
+<div className={styles.code}>
+
+```
+...
+
+// https://next-auth.js.org/getting-started/example
+export default NextAuth({
+  adapter: ...
+  providers: ...
+  callbacks: {
+    // Adds userId, stripeCustomerId, and isPro boolean from DB to the default session values   
+    session: async ({ session, user }) => {
+      if (typeof user.id === 'string') session.user.id = user.id;
+      if (typeof user.stripeCustomerId === 'string') {
+        session.user.stripeCustomerId = user.stripeCustomerId;
+      }
+      if (typeof user.isPro === 'boolean') session.user.isPro = user.isPro;
+      return Promise.resolve(session);
+    },
+  },
+})
+```
+
+</div>
+
+Adding this callback will raise some Typescript errors as user.id, user.stripeCustomerId, and user.isPro are not typical
+properties of the session object.
+
+In order to fix these errors we need to add the custom types ourselves.
+
+In the *types* folder create a file called *next-auth.d.ts* with the following code:
+
+<div className={styles.code}>
+
+```
+import { DefaultUser } from 'next-auth';   
+
+declare module 'next-auth' {
+  interface Session {
+    user: DefaultUser & {
+      id: string;
+      stripeCustomerId: string;
+      isPro: boolean;
+    };
+  }
+}
+```
+
+</div>
+
+### Add SessionProvider to application
+
+The final step in setting up NextAuth.js is wrapping your components in a session provider. This allows the session object
+to be passed across components which is required for the use of *useSession()*.
+
+Adjust the *_app.tsx* file under the *pages* folder to match below:
+
+<div className={styles.code}>
+
+```
+import "../styles/globals.css";
+import type { AppProps } from "next/app";
+import { SessionProvider } from "next-auth/react";
+
+function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
+  return (
+    // Wrap in SessionProvider from NextJs. Allows session to be passed through components   
+    // https://next-auth.js.org/getting-started/client#sessionprovider
+    <SessionProvider session={session}>
+      <Component {...pageProps} />
+    </SessionProvider>
+  );
+}
+
+export default MyApp;
+
+```
+
+</div>
+<div id='test'></div>
+
+## Test NextAuth.js flow
+
+We should now have all the necessary setup for NextAuth.js complete. Below I have included code for two pages.
+
+This first page is an unprotected page that includes a login button. It will replace the *index.tsx* page that was automatically generated for you.
+
+<div className={styles.code}>
+
+```
+import type { NextPage } from "next";
+import { signIn } from "next-auth/react";
+
+const Home: NextPage = () => {
+  return (
+    <button
+      onClick={(e) => {
+        e.preventDefault();
+        // NextAuth function to initiate user authentication flow   
+        // https://next-auth.js.org/getting-started/client#signin
+        signIn(undefined, { callbackUrl: "/dashboard" });
+      }}
+    >
+      Login
+    </button>
+  );
+};
+
+export default Home;
+```
+
+</div>
+
+This second page is a protected page called *dashboard.tsx* that only a registered user should be able to access.
+
+<div className={styles.code}>
+
+```
+import { useSession, getSession } from "next-auth/react";
+import { NextPage, NextPageContext } from "next";
+import { signOut } from "next-auth/react";
+
+const Dashboard: NextPage = () => {
+  const { data: session } = useSession();
+
+  return (
+    <div>
+      <h1>Welcome {session?.user.name}</h1>
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          // Nextauth function to initiate user signout flow
+          // https://next-auth.js.org/getting-started/client#signout
+          signOut({ callbackUrl: "/" });
+        }}
+      >
+        Logout
+      </button>
+    </div>
+  );
+};
+
+export default Dashboard;
+
+// Export the `session` prop to use sessions with Server Side Rendering   
+export async function getServerSideProps(context: NextPageContext) {
+  const session = await getSession(context);
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: "/",
+        permanent: false,
+      },
+    };
+  }
+
+  return {
+    props: { session },
+  };
+}
+
+```
+
+</div>
+
+Start up your development server by typing:
+
+<div className={styles.code}>
+  ```
+  npm run dev
+  ```
+</div>
+
+You should see a page with a login button. When you click that button it should redirect to NextAuth.js' default sign-in page.
+
+Select the Auth0 button and create an account if necessary. After logging in, you should see a page with a welcome message and
+a logout button.
+
+When you click the logout button it should return you to the first page with the login button.
+
+If you attempt to directly access the protected page without logging in it will return you to the homepage.
+
+In Part II we will set up Stripe and integrate it with NextAuth.js.
+
+If you would like to view or copy the completed code for these two guides you can find it 
+<Link href='https://github.com/mattlaux/NextAuth.js_And_Stripe_Next.js_Example'><a>here on Github</a></Link>.
+
+<Link href='/posts/settingUpStripe'>
+  <a><Button buttonColor="red" buttonText="Read Part II &rarr;" /></a>
+</Link>
+
+export default ({ children }) => (
+  <LayoutPost
+    url="https://mattlaux.com"
+    openGraphType="website"
+    schemaType="website"
+    title="Software project management plan"
+    description="View the software project management plan for this portfolio site. The SPMP includes a scope of work, project plan, and performance budget."
+    image="https://mattlaux.com/images/profilePic.webp"
+  >
+    {children}
+  </LayoutPost>
+);
