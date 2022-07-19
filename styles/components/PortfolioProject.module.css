@@ -36,7 +36,6 @@
 @media (max-width: 600px) {
   .projectContainer {
     display: block;
-    margin: 0 0;
     background-color: white;
     margin: 1rem 1rem;
     padding: 0 0;
