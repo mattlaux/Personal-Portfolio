@@ -2,6 +2,7 @@ import Button from '../button';
 import styles from '../../styles/components/headers/Header.module.css';
 import Image from 'next/image';
 import { useState } from 'react';
+import Link from 'next/link';
 
 const Header = () => {
   const [navBarOpen, setNavBarOpen] = useState(false);
@@ -40,6 +41,16 @@ const Header = () => {
           <a href="#blog" onClick={() => setNavBarOpen(false)}>
             Blog
           </a>
+          <Link href="https://www.linkedin.com/in/matt-laux">
+            <a className={styles.linkedInLink}>
+              <Image
+                src="/images/svgs/linkedin.svg"
+                alt=""
+                width={30}
+                height={30}
+              />
+            </a>
+          </Link>
           <Button buttonText="Contact Me" buttonColor="red"></Button>
         </nav>
       </header>
