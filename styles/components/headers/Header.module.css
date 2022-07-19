@@ -23,6 +23,14 @@
   color: black;
 }
 
+.header .linkedInLink {
+  margin-right: 1rem;
+  margin-left: 0.5rem;
+  margin-top: 0;
+  margin-bottom: 0;
+  align-self: center;
+}
+
 .navBarOpen,
 .navBarClose {
   display: flex;
@@ -56,6 +64,11 @@
     overflow: visible;
   }
 
+  .header .linkedInLink {
+    width: 100%;
+    margin: 0;
+  }
+
   .navBarClose {
     display: none;
   }
@@ -75,9 +88,10 @@
   .navBarOpen a {
     border-bottom: 1px solid lightgray;
     text-align: center;
-    padding: 1rem;
     font-size: 1.5rem;
-    margin: 0 0;
+    margin: 0;
+    height: 50px;
+    padding-top: 10px;
   }
 
   .navBarOpen button {

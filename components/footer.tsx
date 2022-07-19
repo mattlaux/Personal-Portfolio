@@ -1,6 +1,7 @@
 import CTA from '../components/cta';
 import styles from '../styles/components/Footer.module.css';
-import Button from './button';
+import Image from 'next/image';
+import Link from 'next/link';
 
 const Footer = () => {
   return (
@@ -12,9 +13,16 @@ const Footer = () => {
       <p className={styles.footerSlogan}>
         Interested in creating innovative products and continuing to learn.
       </p>
-      <div className={styles.resumeButton}>
-        <Button buttonColor="red" buttonText="Resume" />
-      </div>
+      <Link href="https://www.linkedin.com/in/matt-laux">
+        <a>
+          <Image
+            src="/images/svgs/linkedin.svg"
+            alt=""
+            width={50}
+            height={50}
+          />
+        </a>
+      </Link>
       <p>Created with Next.js and hosted on Vercel</p>
       <p>Made with vanilla CSS</p>
     </footer>
